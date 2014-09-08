@@ -143,19 +143,19 @@ function sendOutdateError(level)
 
 	var errorlevel = Math.max(nagios1,nagios2);
 	fs.writeFileSync("nagios.txt",errorlevel);
-	
+
 	if (nagios1 >0 && nagios2 == 0)
 	{
 		fs.writeFileSync("errormessage.txt","Lastsicherheit gefährdet.");
-	}
-	if (nagios2 >0 && nagios1 == 0)
+	} else if (nagios2 >0 && nagios1 == 0)
 	{
 		fs.writeFileSync("errormessage.txt","Havariesystem ist veraltet.");
-	}
-	if (nagios1 >0 && nagios1 > 0)
+	} else if (nagios1 >0 && nagios1 > 0)
 	{
 		fs.writeFileSync("errormessage.txt","Havariesystem ist veraltet und nicht lastsicher.");
-	}		
+	} else {
+		fs.writeFileSync("errormessage.txt","Es liegt keine Fehlermeldung vor.");
+	}	
 
 	//console.log("Age: %s Sek", age);
 }
