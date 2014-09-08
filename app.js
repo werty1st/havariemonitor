@@ -122,14 +122,14 @@ function sendOutdateError(level)
 	//stufe 1
 	if(age<1200 && level > 0)
 	{
-		fs.writeFileSync("lasterror.txt",mtime);
+		fs.writeFileSync("lasterror.txt","Autoimport läuft nicht.");
 		var fd = fs.openSync("lasterror.txt","rs+");
 		fs.futimesSync(fd, ctime, mtime);
 		nagios2 = 1;
 		console.log("gelb");
 
 	} else if(age >= 1200 && level > 0){
-		fs.writeFileSync("lasterror.txt",mtime);
+		fs.writeFileSync("lasterror.txt","Autoimport läuft schon länger nicht.");
 		var fd = fs.openSync("lasterror.txt","rs+");
 		fs.futimesSync(fd, ctime, mtime);
 		nagios2 = 2;
@@ -143,6 +143,19 @@ function sendOutdateError(level)
 
 	var errorlevel = Math.max(nagios1,nagios2);
 	fs.writeFileSync("nagios.txt",errorlevel);
+	
+	if (nagios1 >0 && nagios2 == 0)
+	{
+		fs.writeFileSync("errormessage.txt","Lastsicherheit gefährdet.");
+	}
+	if (nagios2 >0 && nagios1 == 0)
+	{
+		fs.writeFileSync("errormessage.txt","Havariesystem ist veraltet.");
+	}
+	if (nagios1 >0 && nagios1 > 0)
+	{
+		fs.writeFileSync("errormessage.txt","Havariesystem ist veraltet und nicht lastsicher.");
+	}		
 
 	//console.log("Age: %s Sek", age);
 }
