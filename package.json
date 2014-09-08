@@ -1,0 +1,15 @@
+{
+  "name": "havariemonitor",
+  "private": true,
+  "version": "0.0.1",
+  "description": "Compares Backup CMD with Live CMS",
+  "repository": "https://github.com/werty1st/havariemonitor",
+  "license": "MIT",
+  "dependencies": {
+    "xmldom": "~0.1.19",
+    "xpath": "0.0.7",
+    "http": "0.0.0",
+    "jsdom": "~1.0.0-pre.6"
+  },
+  "devDependencies": {}
+}
