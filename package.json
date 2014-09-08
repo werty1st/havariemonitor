@@ -8,7 +8,6 @@
   "dependencies": {
     "xmldom": "~0.1.19",
     "xpath": "0.0.7",
-    "http": "0.0.0",
     "jsdom": "~1.0.0-pre.6"
   },
   "devDependencies": {}

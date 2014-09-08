@@ -23,6 +23,8 @@ var xpath = require('xpath');
 var dom = require('xmldom').DOMParser;
 var jsdom = require("jsdom");
 
+// sendOutdateError(0); return;
+
 //havarie
 function loadhtml(xmlnodes,xmltitel){
 
@@ -43,23 +45,106 @@ function loadhtml(xmlnodes,xmltitel){
 function parseHTML(html,xmlnodes,xmltitel)
 {
 	jsdom.env(
-	  html,
-	  ["http://code.jquery.com/jquery.js"],
-	  function (errors, window) {
-	  	var headlines = window.$(".article.kurznachricht > h1");
-	  	var headline1 = headlines[0];
-	  	var h1txt = window.$(headline1).text();
-	    
-	    // var t=getTitles(xmlnodes);
-	    //finde position in xml
-	    for (var i = xmltitel.length - 1; i >= 0; i--) {
-	    	var x = xmltitel[i];
-	    	console.log(x.firstChild.nodeValue);
-	    	
+		html,
+		["http://code.jquery.com/jquery.js"],
+		function (errors, window)
+		{
+			var headlines = window.$(".article.kurznachricht > h1");
 
-	    };
-	  }
-	);	
+			if (headlines.length == 0){
+				sendOutdateError(2); //2=höchste stufe
+				return;
+			} 
+
+			var headline1 = headlines[0];
+			var hheadline = window.$(headline1).text();
+
+			console.log("Havarie:  ", hheadline);
+
+			for(var i=0, len=xmltitel.length;i<len;i++)
+			{
+				var xheadline = xmltitel[i].firstChild.nodeValue;
+				console.log("heute.de: ", xheadline);
+
+				if (hheadline.toUpperCase() === xheadline.toUpperCase())
+				{
+					//position von havarie headline in heute headlines gefunden
+					break;
+				}
+			}
+
+			//positionen vergleichen
+			if (i === 0)
+			{
+				//ok raus
+				sendOutdateError(0);
+			} else {
+				sendOutdateError(i);
+			}
+			////return;
+
+			//console.log("Havarie:  ", window.$(headlines[i]).text());
+			//console.log("heute.de: ",x);
+			// var t=getTitles(xmlnodes);
+			//finde position in xml
+			// for (var i = xmltitel.length - 1; i >= 0; i--) {
+			// 	var x = xmltitel[i];
+			// 	console.log(x.firstChild.nodeValue);
+			// };
+		}
+	);
+}
+
+function sendOutdateError(level)
+{
+	//lasterror file einlesen
+	var fs = require('fs');
+	var nagios1 = 0;
+	var nagios2 = 0;
+	var mtime = new Date();
+	var ctime = new Date();
+	var age = 0;
+
+	try{
+		nagios1 = fs.readFileSync("../listReqURLs/nagios.txt");
+	} catch (e)
+	{
+	}
+
+	try{
+		mtime = fs.statSync("lasterror.txt").mtime;
+		ctime = fs.statSync("lasterror.txt").ctime;
+		age = parseInt((new Date() - mtime)/1000);
+	} catch (e)
+	{
+	}
+
+	//stufe 1
+	if(age<1200 && level > 0)
+	{
+		fs.writeFileSync("lasterror.txt",mtime);
+		var fd = fs.openSync("lasterror.txt","rs+");
+		fs.futimesSync(fd, ctime, mtime);
+		nagios2 = 1;
+		console.log("gelb");
+
+	} else if(age >= 1200 && level > 0){
+		fs.writeFileSync("lasterror.txt",mtime);
+		var fd = fs.openSync("lasterror.txt","rs+");
+		fs.futimesSync(fd, ctime, mtime);
+		nagios2 = 2;
+		console.log("rot");
+	} else {
+		fs.writeFileSync("lasterror.txt",new Date());
+		nagios2 = 0;
+		console.log("grün");
+	}
+
+
+	var errorlevel = Math.max(nagios1,nagios2);
+	fs.writeFileSync("nagios.txt",errorlevel);
+
+	//console.log("Age: %s Sek", age);
 }
 
 
