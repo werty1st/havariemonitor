@@ -120,7 +120,7 @@ function sendOutdateError(level)
 	}
 
 	//stufe 1
-	if(age<1200 && level > 0)
+	if(age >= 1200 && level == 1)
 	{
 		fs.writeFileSync("lasterror.txt","Autoimport läuft nicht.");
 		var fd = fs.openSync("lasterror.txt","rs+");
@@ -128,7 +128,7 @@ function sendOutdateError(level)
 		nagios2 = 1;
 		console.log("gelb");
 
-	} else if(age >= 1200 && level > 0){
+	} else if(age >=1200 && level == 2){
 		fs.writeFileSync("lasterror.txt","Autoimport läuft schon länger nicht.");
 		var fd = fs.openSync("lasterror.txt","rs+");
 		fs.futimesSync(fd, ctime, mtime);
