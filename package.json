@@ -7,7 +7,6 @@
   "license": "MIT",
   "dependencies": {
     "jsdom": "~1.0.0-pre.6",
-    "ssl-root-cas": "^1.1.7",
     "xmldom": "~0.1.19",
     "xpath": "0.0.7"
   },
