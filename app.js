@@ -15,10 +15,17 @@
 //heute.de kurznachrichten als xml
 //var p12_url = "http://www.zdf.de/ZDF/zdfportal/xml/object/6019522";
 var p12_url = "http://www.zdf.de/ZDF/zdfportal/api/v1/content/p12:6019522";
-var havarie_url = "http://havarie.zdf.de/interim/ZDFheute/";
+var havarie_url = "https://havarie.zdf.de/interim/ZDFheute/";
 
 
 var http = require('http');
+var https = require('https');
+
+process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
+
+// var sslRootCAs = require('ssl-root-cas/latest');
+// 	sslRootCAs.inject();
+
 var xpath = require('xpath');
 var dom = require('xmldom').DOMParser;
 var jsdom = require("jsdom");
@@ -28,7 +35,7 @@ var jsdom = require("jsdom");
 //havarie
 function loadhtml(xmlnodes,xmltitel){
 
-	var req = http.get(havarie_url, function(res) {
+	var req = https.get(havarie_url, function(res) {
 	  // save the data
 	  var xml = '';
 	  res.on('data', function(chunk) {
@@ -120,7 +127,7 @@ function sendOutdateError(level)
 	}
 
 	//stufe 1
-	if(age<1200 && level > 0)
+	if(age >= 1200 && level == 1)
 	{
 		fs.writeFileSync("lasterror.txt","Autoimport läuft nicht.");
 		var fd = fs.openSync("lasterror.txt","rs+");
@@ -128,7 +135,7 @@ function sendOutdateError(level)
 		nagios2 = 1;
 		console.log("gelb");
 
-	} else if(age >= 1200 && level > 0){
+	} else if(age >=1200 && level == 2){
 		fs.writeFileSync("lasterror.txt","Autoimport läuft schon länger nicht.");
 		var fd = fs.openSync("lasterror.txt","rs+");
 		fs.futimesSync(fd, ctime, mtime);
