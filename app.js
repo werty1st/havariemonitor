@@ -21,10 +21,12 @@ var havarie_url = "https://havarie.zdf.de/interim/ZDFheute/";
 var http = require('http');
 var https = require('https');
 
-process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
+//process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
 
-// var sslRootCAs = require('ssl-root-cas/latest');
-// 	sslRootCAs.inject();
+require('ssl-root-cas/latest')
+ .inject()
+ .addFile(__dirname + '/geotrust_intermediate_bundle.pem');
+
 
 var xpath = require('xpath');
 var dom = require('xmldom').DOMParser;
