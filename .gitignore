@@ -1,6 +1,7 @@
 
 nagios.txt
 lasterror.txt
+errormessage.txt
 
 logs/*
 !.gitkeep
