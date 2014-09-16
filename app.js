@@ -162,6 +162,10 @@ function sendOutdateError(level)
 		fs.writeFileSync("errormessage.txt","Es liegt keine Fehlermeldung vor.");
 	}	
 
+
+	//cp für web
+	fs.createReadStream('errormessage.txt').pipe(fs.createWriteStream('web/errormessage.txt'));
+	fs.createReadStream('nagios.txt').pipe(fs.createWriteStream('web/nagios.txt'));
 	//console.log("Age: %s Sek", age);
 }
 
