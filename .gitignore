@@ -1,4 +1,6 @@
 
+nagios.txt
+lasterror.txt
 
 logs/*
 !.gitkeep
