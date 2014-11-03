@@ -191,6 +191,9 @@ var req = http.get(p12_url, function(res) {
 
   res.on('end', function() {
     // parse xml
+    var fs = require('fs');
+    fs.writeFileSync("p12.xml",xml);
+    
     parseXML(xml);
   });
 });
