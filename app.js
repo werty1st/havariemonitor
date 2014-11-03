@@ -124,6 +124,7 @@ function sendOutdateError(level)
 	{
 	}
 
+	console.log("Age: " + age + " level: " + level);
 
 	//stufe 1
 	if(age >= 1200 && level == 1)
