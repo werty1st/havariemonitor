@@ -11,6 +11,11 @@
 
 //kombiniere mit linkScript und speichere höheren der beiden werte in nagios datei. speichere eine status/fehlermeldung in nagios datei
 
+process.on('uncaughtException', function(err) {
+  console.log(err);
+  process.exit(1);
+});
+
 
 //heute.de kurznachrichten als xml
 //var p12_url = "http://www.zdf.de/ZDF/zdfportal/xml/object/6019522";
