@@ -38,6 +38,8 @@ var jsdom = require("jsdom");
 //havarie
 function loadhtml(xmlnodes,xmltitel){
 
+	//console.log("loadhtml");
+
 	var req = https.get(havarie_url, function(res) {
 	  // save the data
 	  var xml = '';
@@ -54,6 +56,8 @@ function loadhtml(xmlnodes,xmltitel){
 
 function parseHTML(html,xmlnodes,xmltitel)
 {
+	//console.log("parseHTML");
+
 	jsdom.env(
 		html,
 		["http://code.jquery.com/jquery.js"],
@@ -63,7 +67,6 @@ function parseHTML(html,xmlnodes,xmltitel)
 
 			if (headlines.length == 0){
 				sendOutdateError(2); //2=höchste stufe
-				return;
 			} 
 
 			var headline1 = headlines[0];
@@ -107,6 +110,8 @@ function parseHTML(html,xmlnodes,xmltitel)
 
 function sendOutdateError(level)
 {
+	//console.log("sendOutdateError");
+
 	//lasterror file einlesen
 	var fs = require('fs');
 	var nagios1 = 0;
@@ -119,6 +124,7 @@ function sendOutdateError(level)
 		nagios1 = fs.readFileSync("../listReqURLs/nagios.txt");
 	} catch (e)
 	{
+		console.log("error at readFileSync(\"../listReqURLs/nagios.txt\"");
 	}
 
 	try{
@@ -127,6 +133,7 @@ function sendOutdateError(level)
 		age = parseInt((new Date() - mtime)/1000);
 	} catch (e)
 	{
+		console.log("error at lasterror.txt");
 	}
 
 	console.log("Age: " + age + " level: " + level);
@@ -174,6 +181,10 @@ function sendOutdateError(level)
 	fs.createReadStream('errormessage.txt').pipe(fs.createWriteStream('web/errormessage.txt'));
 	fs.createReadStream('nagios.txt').pipe(fs.createWriteStream('web/nagios.txt'));
 	//console.log("Age: %s Sek", age);
+
+	console.log("Done");
+	process.exit(0);
+
 }
 
 
