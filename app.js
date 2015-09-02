@@ -38,7 +38,7 @@ var jsdom = require("jsdom");
 //havarie
 function loadhtml(xmlnodes,xmltitel){
 
-	//console.log("loadhtml");
+	console.log("loadhtml");
 
 	var req = https.get(havarie_url, function(res) {
 	  // save the data
@@ -56,11 +56,11 @@ function loadhtml(xmlnodes,xmltitel){
 
 function parseHTML(html,xmlnodes,xmltitel)
 {
-	//console.log("parseHTML");
+	console.log("parseHTML");
 
 	jsdom.env(
 		html,
-		["http://code.jquery.com/jquery.js"],
+		["https://code.jquery.com/jquery-2.1.3.min.js"],
 		function (errors, window)
 		{
 			var headlines = window.$(".article.kurznachricht > h1");
@@ -110,7 +110,7 @@ function parseHTML(html,xmlnodes,xmltitel)
 
 function sendOutdateError(level)
 {
-	//console.log("sendOutdateError");
+	console.log("sendOutdateError");
 
 	//lasterror file einlesen
 	var fs = require('fs');
@@ -162,39 +162,47 @@ function sendOutdateError(level)
 
 	var errorlevel = Math.max(nagios1,nagios2);
 	fs.writeFileSync("nagios.txt",errorlevel);
+	fs.writeFileSync('web/nagios.txt',errorlevel);
+	
+
 
 	if (nagios1 >0 && nagios2 == 0)
 	{
 		fs.writeFileSync("errormessage.txt","Lastsicherheit gefährdet.");
+		fs.writeFileSync("web/errormessage.txt","Lastsicherheit gefährdet.");
 	} else if (nagios2 >0 && nagios1 == 0)
 	{
 		fs.writeFileSync("errormessage.txt","Havariesystem ist veraltet.");
+		fs.writeFileSync("web/errormessage.txt","Havariesystem ist veraltet.");
 	} else if (nagios1 >0 && nagios1 > 0)
 	{
 		fs.writeFileSync("errormessage.txt","Havariesystem ist veraltet und nicht lastsicher.");
+		fs.writeFileSync("web/errormessage.txt","Havariesystem ist veraltet und nicht lastsicher.");
 	} else {
 		fs.writeFileSync("errormessage.txt","Es liegt keine Fehlermeldung vor.");
+		fs.writeFileSync("web/errormessage.txt","Es liegt keine Fehlermeldung vor.");
 	}	
-
-
-	//cp für web
-	fs.createReadStream('errormessage.txt').pipe(fs.createWriteStream('web/errormessage.txt'));
-	fs.createReadStream('nagios.txt').pipe(fs.createWriteStream('web/nagios.txt'));
+	
 	//console.log("Age: %s Sek", age);
 
 	console.log("Done");
-	process.exit(0);
-
+	//process.exit(0);
 }
 
 
-// function getTitles(nodes)
-// {
-// 	var select = xpath.useNamespaces({"zdf": "http://www.zdf.de/api/contentservice/v1"});
-// 	var nodes2 = xpath.query('zdf:titel', nodes);
-// 	console.log(nodes2);
+function parseXML(xml){
+	
+	var doc = new dom().parseFromString(xml);
+	var select = xpath.useNamespaces({"zdf": "http://www.zdf.de/api/contentservice/v1"});
 
-// }
+	var nodes = select('//zdf:Rubrik/zdf:id[text()="newsflash:Nachrichten"]/../zdf:kurzmeldungen/zdf:Kurzmeldung', doc);
+	var title = select('//zdf:Rubrik/zdf:id[text()="newsflash:Nachrichten"]/../zdf:kurzmeldungen/zdf:Kurzmeldung/zdf:titel', doc);
+	
+	loadhtml(nodes,title);
+	//console.log(nodes[0].localName + ": " + nodes[0].firstChild.data)
+	//console.log("node: " + nodes[0].toString())
+
+}
 
 
 //p12
@@ -218,19 +226,6 @@ req.on('error', function(err) {
   // debug error
 });
 
-function parseXML(xml){
-	
-	var doc = new dom().parseFromString(xml);
-	var select = xpath.useNamespaces({"zdf": "http://www.zdf.de/api/contentservice/v1"});
-
-	var nodes = select('//zdf:Rubrik/zdf:id[text()="newsflash:Nachrichten"]/../zdf:kurzmeldungen/zdf:Kurzmeldung', doc);
-	var title = select('//zdf:Rubrik/zdf:id[text()="newsflash:Nachrichten"]/../zdf:kurzmeldungen/zdf:Kurzmeldung/zdf:titel', doc);
-	
-	loadhtml(nodes,title);
-	//console.log(nodes[0].localName + ": " + nodes[0].firstChild.data)
-	//console.log("node: " + nodes[0].toString())
-
-}
 
 
 
