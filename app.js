@@ -19,7 +19,7 @@ process.on('uncaughtException', function(err) {
 
 //heute.de kurznachrichten als xml
 //var p12_url = "http://www.zdf.de/ZDF/zdfportal/xml/object/6019522";
-var p12_url = "http://www.zdf.de/ZDF/zdfportal/api/v1/content/p12:6019522";
+var p12_url = "https://www.heute.de/ZDF/zdfportal/api/v1/content/p12:6019522";
 var havarie_url = "https://havarie.zdf.de/interim/ZDFheute/";
 
 
@@ -206,7 +206,7 @@ function parseXML(xml){
 
 
 //p12
-var req = http.get(p12_url, function(res) {
+var req = https.get(p12_url, function(res) {
   // save the data
   var xml = '';
   res.on('data', function(chunk) {

@@ -25,7 +25,11 @@
 
       <div class="container">
         <div class="" id="result">
-            <div class="" role="alert" id="result2"></div>        
+            <div class="" role="alert" id="result2">
+              <span id="resultmsg"></span><br>
+              <span id="age"></span> <span id="timestamp" style="font-size: small;"></span>
+            </div>        
+                    
         </div>        
       </div>
     
@@ -34,61 +38,85 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
     <!-- Include all compiled plugins (below), or include individual files as needed -->
     <script src="js/bootstrap.min.js"></script>
+    <script src="js/moment.min.js"></script>
     <script type="text/javascript">
+        moment.locale("de");
     
         var nagios = -1;
+        var LastModified;
+        var statusImageUrl;
 
-        function run(){        
-            $.get("nagios.txt",
-                function( data ){
+        function run(){
+
+
+            var xhr = $.ajax({
+                url: "nagios.txt",
+                success: function(datastr) {
+                    var data = parseInt(datastr);
+                    LastModified = xhr.getResponseHeader("Last-Modified");
+                    
+                    updateStatus(data);
+                    
                     if (nagios == -1){
                         nagios = data;
                     } else if( nagios != data){
                         nagios = data;
                         notifyMe();
-                    }
-                    updateStatus(data);
+                    }                    
                 }
-            );
+            });
+
+
         }   
 
-        function loadErrorMsg(){
+        function loadErrorMsg(age){
             $.get("errormessage.txt",
                 function( data ){
-                    updateErrorMsg(data);
+                    updateErrorMsg(data, age);
                 }
             );
         }
 
         function updateStatus( data ){
 
-            data = parseInt(data);
+
+            
+            var age =  moment().diff( moment( new Date(LastModified)) );
+            age = moment.duration(age).humanize();
+
+
             switch (data)
             { 
                 case 0:
                     $("#result").removeClass();
-                    updateErrorMsg("Es liegt keine Störung vor.");
+                    updateErrorMsg("Es liegt keine Störung vor.", age);
                     $("#result").addClass("alert alert-success glyphicon glyphicon-ok-circle");
+                    statusImageUrl = "/status/img/green.jpg";
                     break;
                 case 1: 
                     $("#result").removeClass();
                     $("#result").addClass("alert alert-warning glyphicon glyphicon-time");
-                    loadErrorMsg();
+                    loadErrorMsg(age);
+                    statusImageUrl = "/status/img/yellow.jpg";
                     break;
                 case 2: 
                     $("#result").removeClass();
                     $("#result").addClass("alert alert-danger glyphicon glyphicon-fire");
-                    loadErrorMsg();
+                    loadErrorMsg(age);
+                    statusImageUrl = "/status/img/red.jpg";
                     break;
                 default:
                     $("#result").removeClass();
                     $("#result").addClass("alert alert-info glyphicon glyphicon-off");
-                    updateErrorMsg("Die Überwachung ist abgeschaltet");
+                    updateErrorMsg("Die Überwachung ist abgeschaltet.", age);
+                    statusImageUrl = "/status/img/red.jpg";
             }
         }
         
-        function updateErrorMsg( msg ){
-            $("#result2").text(msg);
+        function updateErrorMsg( msg, age ){
+            $("#resultmsg").text(msg);
+            $("#age").text("Letzter Check vor " + age + ".");
+            $("#timestamp").text("("+ moment( new Date(LastModified)).format("LLL") +")");
         }
 
         run();
@@ -102,6 +130,9 @@
         }
 
         function notifyMe() {
+
+          var options = { lang:"de-DE", body: $("#resultmsg").text(), icon: statusImageUrl };
+
           // Let's check if the browser supports notifications
           if (!("Notification" in window)) {
             console.log("This browser does not support desktop notification");
@@ -113,7 +144,7 @@
             if (notification) {
                 notification.close();
             }
-            notification = new Notification("NOT-CMS Status changed");
+            notification = new Notification("NOT-CMS Status Meldung", options);
             setTimeout(clearNotify,5000);
           }
 
@@ -132,7 +163,7 @@
                 if (notification) {
                     notification.close();
                 }
-                notification = new Notification("NOT-CMS Status changed");
+                notification = new Notification("NOT-CMS Status Meldung", options);
                 setTimeout(clearNotify,5000);
               }
             });
