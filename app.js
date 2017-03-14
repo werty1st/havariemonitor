@@ -20,7 +20,7 @@ process.on('uncaughtException', function(err) {
 //heute.de kurznachrichten als xml
 //var p12_url = "http://www.zdf.de/ZDF/zdfportal/xml/object/6019522";
 var p12_url = "https://www.heute.de/ZDF/zdfportal/api/v1/content/p12:6019522";
-var havarie_url = "https://havarie.zdf.de/interim/ZDFheute/";
+var havarie_url = "https://havarielive.zdf.de/interim/ZDFheute/";
 
 
 var http = require('http');
