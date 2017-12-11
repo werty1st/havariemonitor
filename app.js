@@ -43,12 +43,18 @@ async function main(){
 
 	Promise.all([titel,heutede]).then(values=>{
 		//find titel in heutede
-		let titel = values[0];
+		let titelList = values[0];
 		let heutede = values[1];
 
-		const result = heutede.indexOf(titel+1);
+		let treffer = 0;
+		titelList.forEach(titel => {
+			console.log("titel",titel);
+			if (heutede.indexOf(titel)!= -1)treffer +=1;
+		});
 
-		if (result == -1){
+		console.log("treffer",treffer);
+
+		if (titel > 10){
 			//outdated
 			sendOutdateError(2);
 		} else {
@@ -108,9 +114,20 @@ function parseHTML(html)
 	const dom = new JSDOM(html);
 
 	//getHeadlines
-	const h1 = dom.window.document.querySelector(".article.kurznachricht > h1");
+	const h1 = dom.window.document.querySelectorAll(".article.kurznachricht > h1");
 
-	return titel = h1.innerHTML;
+	
+	// for(let el of h1){
+	// 	console.log("el",el.innerHTML);
+	// }
+	const h1a = Array.from(h1);
+
+	return h1a.map(el=>{
+		return el.innerHTML;
+	})
+
+
+	//return titel = h1.innerHTML;
 
 }
 
