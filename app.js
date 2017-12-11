@@ -1,4 +1,10 @@
-//lade xml
+//Neu
+
+//lade havarieseite finde den neusten h1 titel
+
+//lade zdf.de/nachrichten und suche den h1 titel
+
+
 
 //lade havarie index
 
@@ -19,93 +25,93 @@ process.on('uncaughtException', function(err) {
 
 //heute.de kurznachrichten als xml
 //var p12_url = "http://www.zdf.de/ZDF/zdfportal/xml/object/6019522";
-var p12_url = "https://www.heute.de/ZDF/zdfportal/api/v1/content/p12:6019522";
-var havarie_url = "https://havarielive.zdf.de/interim/ZDFheute/";
-
-
-var http = require('http');
-var https = require('https');
+const sophora_url = "https://www.zdf.de/nachrichten/";
+const havarie_url = "https://havarielive.zdf.de/interim/ZDFheute/";
 
 process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
 
+const https = require('https');
+const jsdom = require("jsdom");
+const { JSDOM } = jsdom;
 
-var xpath = require('xpath');
-var dom = require('xmldom').DOMParser;
-var jsdom = require("jsdom");
 
-// sendOutdateError(0); return;
+
+async function main(){
+	
+	const titel   = loadhtml();
+	const heutede = loadSophora();
+
+	Promise.all([titel,heutede]).then(values=>{
+		//find titel in heutede
+		let titel = values[0];
+		let heutede = values[1];
+
+		const result = heutede.indexOf(titel+1);
+
+		if (result == -1){
+			//outdated
+			sendOutdateError(2);
+		} else {
+			//found
+			sendOutdateError(0);
+		}
+
+		console.log("Done");
+	}).catch(err=>{
+		console.log("error",err);
+	})
+		
+}
+main();
+
 
 //havarie
-function loadhtml(xmlnodes,xmltitel){
+function loadhtml(){
 
 	console.log("loadhtml");
 
-	var req = https.get(havarie_url, function(res) {
-	  // save the data
-	  var xml = '';
-	  res.on('data', function(chunk) {
-	    xml += chunk;
-	  });
+	return new Promise( (resolve, reject)=>{
 
-	  res.on('end', function() {
-	    // parse xml
-	    parseHTML(xml,xmlnodes,xmltitel);
-	  });
-	});
+		const t1 = setTimeout(reject,5000);
+
+		https.get(havarie_url, function(res) {
+			// save the data
+
+			var html = '';
+			res.on('data', function(chunk) {
+			  	html += chunk;
+			});
+	  
+			res.on('end', function() {
+			  // parse html
+			  const titel = parseHTML(html);
+			  clearTimeout(t1);
+			  resolve(titel);
+			});
+		}).on('error', function(err) {
+			// debug error
+			clearTimeout(t1);
+			reject(err);
+		});
+	})
+
+
 }
 
-function parseHTML(html,xmlnodes,xmltitel)
+
+
+
+function parseHTML(html)
 {
 	console.log("parseHTML");
 
-	jsdom.env(
-		html,
-		["https://code.jquery.com/jquery-2.1.3.min.js"],
-		function (errors, window)
-		{
-			var headlines = window.$(".article.kurznachricht > h1");
+	const dom = new JSDOM(html);
 
-			if (headlines.length == 0){
-				sendOutdateError(2); //2=höchste stufe
-			} 
+	//getHeadlines
+	const h1 = dom.window.document.querySelector(".article.kurznachricht > h1");
 
-			var headline1 = headlines[0];
-			var hheadline = window.$(headline1).text();
+	return titel = h1.innerHTML;
 
-			console.log("Havarie:  ", hheadline);
-
-			for(var i=0, len=xmltitel.length;i<len;i++)
-			{
-				var xheadline = xmltitel[i].firstChild.nodeValue;
-				console.log("heute.de: ", xheadline);
-
-				if (hheadline.toUpperCase() === xheadline.toUpperCase())
-				{
-					//position von havarie headline in heute headlines gefunden
-					break;
-				}
-			}
-
-			//positionen vergleichen
-			if (i === 0)
-			{
-				//ok raus
-				sendOutdateError(0);
-			} else {
-				sendOutdateError(i);
-			}
-			////return;
-
-			//console.log("Havarie:  ", window.$(headlines[i]).text());
-			//console.log("heute.de: ",x);
-			// var t=getTitles(xmlnodes);
-			//finde position in xml
-			// for (var i = xmltitel.length - 1; i >= 0; i--) {
-			// 	var x = xmltitel[i];
-			// 	console.log(x.firstChild.nodeValue);
-			// };
-		}
-	);
 }
 
 function sendOutdateError(level)
@@ -139,7 +145,7 @@ function sendOutdateError(level)
 	console.log("Age: " + age + " level: " + level);
 
 	//stufe 1
-	if(age >= 1200 && level == 1)
+	/* if(age >= 1200 && level == 1)
 	{
 		fs.writeFileSync("lasterror.txt","Autoimport läuft nicht.");
 		var fd = fs.openSync("lasterror.txt","rs+");
@@ -147,7 +153,8 @@ function sendOutdateError(level)
 		nagios2 = 1;
 		console.log("gelb");
 
-	} else if(age >=1200 && level >= 2){
+	} else  */
+	if(age >=1200 && level == 2){
 		fs.writeFileSync("lasterror.txt","Autoimport läuft schon länger nicht.");
 		var fd = fs.openSync("lasterror.txt","rs+");
 		fs.futimesSync(fd, ctime, mtime);
@@ -190,42 +197,38 @@ function sendOutdateError(level)
 }
 
 
-function parseXML(xml){
-	
-	var doc = new dom().parseFromString(xml);
-	var select = xpath.useNamespaces({"zdf": "http://www.zdf.de/api/contentservice/v1"});
 
-	var nodes = select('//zdf:Rubrik/zdf:id[text()="newsflash:Nachrichten"]/../zdf:kurzmeldungen/zdf:Kurzmeldung', doc);
-	var title = select('//zdf:Rubrik/zdf:id[text()="newsflash:Nachrichten"]/../zdf:kurzmeldungen/zdf:Kurzmeldung/zdf:titel', doc);
+
+
+//sophora
+function loadSophora()
+{
+	console.log("loadSophora");
+
+	return new Promise( (resolve,reject)=>{
+		const t1 = setTimeout(reject,5000);
+
+		https.get(sophora_url, function(res) {
+			// save the data
+			var html = '';
+			res.on('data', function(chunk) {
+				html += chunk;
+			});
 	
-	loadhtml(nodes,title);
-	//console.log(nodes[0].localName + ": " + nodes[0].firstChild.data)
-	//console.log("node: " + nodes[0].toString())
+			res.on('end', function() {
+				// parse html
+				clearTimeout(t1);
+				resolve(html);
+			});
+		}).on('error', function(err) {
+			// debug error
+			clearTimeout(t1);
+			reject(err);
+		});
+
+	})
 
 }
-
-
-//p12
-var req = https.get(p12_url, function(res) {
-  // save the data
-  var xml = '';
-  res.on('data', function(chunk) {
-    xml += chunk;
-  });
-
-  res.on('end', function() {
-    // parse xml
-    var fs = require('fs');
-    fs.writeFileSync("p12.xml",xml);
-    
-    parseXML(xml);
-  });
-});
-
-req.on('error', function(err) {
-  // debug error
-});
-
 
 
 
