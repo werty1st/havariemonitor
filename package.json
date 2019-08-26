@@ -6,7 +6,7 @@
   "repository": "https://github.com/werty1st/havariemonitor",
   "license": "MIT",
   "dependencies": {
-    "jsdom": "^11.5.1"
+    "jsdom": "^15.1.1"
   },
   "devDependencies": {}
 }
