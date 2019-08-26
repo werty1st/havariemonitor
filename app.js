@@ -1,10 +1,7 @@
 //Neu
 
 //lade havarieseite finde den neusten h1 titel
-
 //lade zdf.de/nachrichten und suche den h1 titel
-
-
 
 //lade havarie index
 
@@ -38,41 +35,49 @@ const { JSDOM } = jsdom;
 
 async function main(){
 	
-	const titel   = loadhtml();
-	const heutede = loadSophora();
+	//const htmlsource       = await ;
+	//const heutede = await loadSophora(sophora_url);
+	const [ htmlsource, heutede] = await Promise.all([
+		loadhtml(havarie_url),
+		loadSophora(sophora_url)
+		]);
+	
 
-	Promise.all([titel,heutede]).then(values=>{
-		//find titel in heutede
-		let titelList = values[0];
-		let heutede = values[1];
+	const notCMStitelList  = getH1Titles(htmlsource);
 
-		let treffer = 0;
-		titelList.forEach(titel => {
-			console.log("titel",titel);
-			if (heutede.indexOf(titel)!= -1)treffer +=1;
-		});
+	//find titel in heutede
+	let treffer = 0;
+	let trefferIndex = -1;
 
-		console.log("treffer",treffer);
-
-		if (titel > 10){
-			//outdated
-			sendOutdateError(2);
-		} else {
-			//found
-			sendOutdateError(0);
+	notCMStitelList.forEach((titel, index) => {
+		console.log("titel",titel);
+		if (heutede.indexOf(titel)!= -1){
+			treffer +=1;
+			//update TreffIndex on first hit
+			if (trefferIndex == -1) trefferIndex=index;
 		}
 
-		console.log("Done");
-	}).catch(err=>{
-		console.log("error",err);
-	})
-		
+	});
+
+	console.log("treffer",treffer);
+	console.log("trefferIndex",trefferIndex);
+
+	if (trefferIndex > 10 || trefferIndex == -1){
+		//outdated
+		sendOutdateError(2);
+	} else {
+		//found
+		sendOutdateError(0);
+	}
+
+	console.log("Done");
+
 }
 main();
 
 
 //havarie
-function loadhtml(){
+async function loadhtml(url){
 
 	console.log("loadhtml");
 
@@ -80,7 +85,7 @@ function loadhtml(){
 
 		const t1 = setTimeout(reject,5000);
 
-		https.get(havarie_url, function(res) {
+		https.get(url, function(res) {
 			// save the data
 
 			var html = '';
@@ -90,9 +95,8 @@ function loadhtml(){
 	  
 			res.on('end', function() {
 			  // parse html
-			  const titel = parseHTML(html);
 			  clearTimeout(t1);
-			  resolve(titel);
+			  resolve(html);
 			});
 		}).on('error', function(err) {
 			// debug error
@@ -107,28 +111,18 @@ function loadhtml(){
 
 
 
-function parseHTML(html)
+function getH1Titles(html)
 {
-	console.log("parseHTML");
-
+	console.log("getH1Titles");
 	const dom = new JSDOM(html);
-
 	//getHeadlines
 	const h1 = dom.window.document.querySelectorAll(".article.kurznachricht > h1");
 
-	
-	// for(let el of h1){
-	// 	console.log("el",el.innerHTML);
-	// }
 	const h1a = Array.from(h1);
 
 	return h1a.map(el=>{
 		return el.innerHTML;
 	})
-
-
-	//return titel = h1.innerHTML;
-
 }
 
 function sendOutdateError(level)
@@ -218,14 +212,14 @@ function sendOutdateError(level)
 
 
 //sophora
-function loadSophora()
+async function loadSophora(url)
 {
-	console.log("loadSophora");
+	console.log("loading source:",url);
 
 	return new Promise( (resolve,reject)=>{
 		const t1 = setTimeout(reject,5000);
 
-		https.get(sophora_url, function(res) {
+		https.get(url, function(res) {
 			// save the data
 			var html = '';
 			res.on('data', function(chunk) {
