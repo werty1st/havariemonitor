@@ -30,7 +30,7 @@ process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
 const https = require('https');
 const jsdom = require("jsdom");
 const { JSDOM } = jsdom;
-
+const fs = require('fs');
 
 
 async function main(){
@@ -108,9 +108,6 @@ async function loadhtml(url){
 
 }
 
-
-
-
 function getH1Titles(html)
 {
 	console.log("getH1Titles");
@@ -125,18 +122,50 @@ function getH1Titles(html)
 	})
 }
 
+
+//sophora
+async function loadSophora(url)
+{
+	console.log("loading source:",url);
+
+	return new Promise( (resolve,reject)=>{
+		const t1 = setTimeout(reject,5000);
+
+		https.get(url, function(res) {
+			// save the data
+			var html = '';
+			res.on('data', function(chunk) {
+				html += chunk;
+			});
+	
+			res.on('end', function() {
+				// parse html
+				clearTimeout(t1);
+				resolve(html);
+			});
+		}).on('error', function(err) {
+			// debug error
+			clearTimeout(t1);
+			reject(err);
+		});
+
+	})
+
+}
+
+
+
+
 function sendOutdateError(level)
 {
-	console.log("sendOutdateError");
-
-	//lasterror file einlesen
-	var fs = require('fs');
+	
 	var nagios1 = 0;
 	var nagios2 = 0;
 	var mtime = new Date();
 	var ctime = new Date();
 	var age = 0;
-
+	
+	//request url error (other job result)
 	try{
 		nagios1 = fs.readFileSync("../listReqURLs/nagios.txt");
 	} catch (e)
@@ -153,7 +182,7 @@ function sendOutdateError(level)
 		console.log("error at lasterror.txt");
 	}
 
-	console.log("Age: " + age + " level: " + level);
+	console.log("Age: " + age + " ErrorLevel: " + level);
 
 	//stufe 1
 	/* if(age >= 1200 && level == 1)
@@ -165,7 +194,7 @@ function sendOutdateError(level)
 		console.log("gelb");
 
 	} else  */
-	if(age >=1200 && level == 2){
+	if(age >=1200 || level == 2){
 		fs.writeFileSync("lasterror.txt","Autoimport läuft schon länger nicht.");
 		var fd = fs.openSync("lasterror.txt","rs+");
 		fs.futimesSync(fd, ctime, mtime);
@@ -208,38 +237,6 @@ function sendOutdateError(level)
 }
 
 
-
-
-
-//sophora
-async function loadSophora(url)
-{
-	console.log("loading source:",url);
-
-	return new Promise( (resolve,reject)=>{
-		const t1 = setTimeout(reject,5000);
-
-		https.get(url, function(res) {
-			// save the data
-			var html = '';
-			res.on('data', function(chunk) {
-				html += chunk;
-			});
-	
-			res.on('end', function() {
-				// parse html
-				clearTimeout(t1);
-				resolve(html);
-			});
-		}).on('error', function(err) {
-			// debug error
-			clearTimeout(t1);
-			reject(err);
-		});
-
-	})
-
-}
 
 
 
