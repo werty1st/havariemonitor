@@ -194,7 +194,7 @@ function sendOutdateError(level)
 		console.log("gelb");
 
 	} else  */
-	if(age >=1200 || level == 2){
+	if(age >=1200 && level == 2){
 		fs.writeFileSync("lasterror.txt","Autoimport läuft schon länger nicht.");
 		var fd = fs.openSync("lasterror.txt","rs+");
 		fs.futimesSync(fd, ctime, mtime);
